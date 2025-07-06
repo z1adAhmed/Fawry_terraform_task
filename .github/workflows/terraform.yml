@@ -121,13 +121,17 @@ jobs:
             exit 1
           fi
           
-          echo "Setting job outputs..."
+          echo "Job outputs will be set in next step"
+          echo "Verifying job outputs:"
+          echo "control_plane_ip: $CONTROL_PLANE_IP"
+          echo "worker_ip: $WORKER_IP"
+
+      - name: Set Job Outputs
+        run: |
           echo "control_plane_ip=$CONTROL_PLANE_IP" >> $GITHUB_OUTPUT
           echo "worker_ip=$WORKER_IP" >> $GITHUB_OUTPUT
           echo "control_plane_private_ip=$CONTROL_PLANE_PRIVATE_IP" >> $GITHUB_OUTPUT
           echo "worker_private_ip=$WORKER_PRIVATE_IP" >> $GITHUB_OUTPUT
-          
-          echo "Job outputs set successfully"
 
   ansible:
     name: Ansible Configuration
