@@ -98,11 +98,23 @@ jobs:
           CONTROL_PLANE_PRIVATE_IP=$(jq -r '.ec2_private_ips.value[0]' terraform_outputs.json)
           WORKER_PRIVATE_IP=$(jq -r '.ec2_private_ips.value[1]' terraform_outputs.json)
           
+          # Read SSH private key
+          SSH_PRIVATE_KEY=$(cat modules/compute/poc-pre-prod-key.pem)
+          
           # Set environment variables
           echo "CONTROL_PLANE_IP=$CONTROL_PLANE_IP" >> $GITHUB_ENV
           echo "WORKER_IP=$WORKER_IP" >> $GITHUB_ENV
           echo "CONTROL_PLANE_PRIVATE_IP=$CONTROL_PLANE_PRIVATE_IP" >> $GITHUB_ENV
           echo "WORKER_PRIVATE_IP=$WORKER_PRIVATE_IP" >> $GITHUB_ENV
+          
+          # Set outputs for other jobs
+          echo "control_plane_ip=$CONTROL_PLANE_IP" >> $GITHUB_OUTPUT
+          echo "worker_ip=$WORKER_IP" >> $GITHUB_OUTPUT
+          echo "control_plane_private_ip=$CONTROL_PLANE_PRIVATE_IP" >> $GITHUB_OUTPUT
+          echo "worker_private_ip=$WORKER_PRIVATE_IP" >> $GITHUB_OUTPUT
+          echo "ssh_private_key<<EOF" >> $GITHUB_OUTPUT
+          echo "$SSH_PRIVATE_KEY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
           
           echo "Control Plane IP: $CONTROL_PLANE_IP"
           echo "Worker IP: $WORKER_IP"
@@ -158,3 +170,10 @@ jobs:
       - name: Run Ansible Playbook
         run: |
           ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --private-key ansible/poc-pre-prod-key.pem
+
+    outputs:
+      control_plane_ip: ${{ steps.tf_outputs.outputs.control_plane_ip }}
+      worker_ip: ${{ steps.tf_outputs.outputs.worker_ip }}
+      control_plane_private_ip: ${{ steps.tf_outputs.outputs.control_plane_private_ip }}
+      worker_private_ip: ${{ steps.tf_outputs.outputs.worker_private_ip }}
+      ssh_private_key: ${{ steps.tf_outputs.outputs.ssh_private_key }}
