@@ -267,17 +267,39 @@ jobs:
           
           # Copy kubeconfig from K3s control plane (requires sudo)
           ssh k3s-control "sudo cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config
+          
+          # Debug: Show original kubeconfig
+          echo "Original kubeconfig:"
+          cat ~/.kube/config
+          
+          # Replace localhost with actual IP and fix server URL
           sed -i "s/127.0.0.1/54.216.208.78/g" ~/.kube/config
+          sed -i "s/localhost/54.216.208.78/g" ~/.kube/config
+          
+          # Debug: Show updated kubeconfig
+          echo "Updated kubeconfig:"
+          cat ~/.kube/config
+
+      - name: Wait for K3s API server
+        run: |
+          echo "Waiting for K3s API server to be ready..."
+          for i in {1..30}; do
+            if kubectl get nodes --request-timeout=10s >/dev/null 2>&1; then
+              echo "K3s API server is ready!"
+              break
+            fi
+            echo "Attempt $i: K3s API server not ready yet, waiting..."
+            sleep 10
+          done
+          
+          # Final connectivity test
+          kubectl cluster-info
+          kubectl get nodes
 
       - name: Deploy to K3s cluster
         run: |
           # Update deployment with correct image tag
           sed -i "s|:latest|:${{ env.IMAGE_TAG }}|g" k8s-manifests/deployment.yaml
-          
-          # Test cluster connectivity
-          echo "Testing cluster connectivity..."
-          kubectl cluster-info
-          kubectl get nodes
           
           # Deploy using kubectl with validation disabled
           kubectl apply --validate=false -f k8s-manifests/namespace.yaml
