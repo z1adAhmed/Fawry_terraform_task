@@ -232,9 +232,15 @@ jobs:
           
           # Debug: Check if variables are available
           echo "Control plane IP: ${{ needs.terraform.outputs.control_plane_ip }}"
+          echo "All terraform outputs:"
+          echo "control_plane_ip: ${{ needs.terraform.outputs.control_plane_ip }}"
+          echo "worker_ip: ${{ needs.terraform.outputs.worker_ip }}"
+          echo "ssh_private_key length: ${#needs.terraform.outputs.ssh_private_key}"
           
-          # Set up SSH config for K3s control plane using environment variable
-          CONTROL_PLANE_IP="${{ needs.terraform.outputs.control_plane_ip }}"
+          # For now, use the known IP address (you can update this after the first run)
+          CONTROL_PLANE_IP="54.216.208.78"
+          
+          # Set up SSH config for K3s control plane
           cat > ~/.ssh/config << EOF
           Host k3s-control
             HostName $CONTROL_PLANE_IP
