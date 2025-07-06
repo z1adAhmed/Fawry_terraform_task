@@ -262,9 +262,9 @@ jobs:
 
       - name: Copy kubeconfig from K3s
         run: |
-          # Copy kubeconfig from K3s control plane
-          scp k3s-control:/etc/rancher/k3s/k3s.yaml ~/.kube/config
-          sed -i "s/127.0.0.1/${{ needs.terraform.outputs.control_plane_ip }}/g" ~/.kube/config
+          # Copy kubeconfig from K3s control plane (requires sudo)
+          ssh k3s-control "sudo cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config
+          sed -i "s/127.0.0.1/54.216.208.78/g" ~/.kube/config
 
       - name: Deploy to K3s cluster
         run: |
