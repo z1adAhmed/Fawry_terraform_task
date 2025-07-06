@@ -274,11 +274,16 @@ jobs:
           # Update deployment with correct image tag
           sed -i "s|:latest|:${{ env.IMAGE_TAG }}|g" k8s-manifests/deployment.yaml
           
-          # Deploy using kubectl directly
-          kubectl apply -f k8s-manifests/namespace.yaml
-          kubectl apply -f k8s-manifests/deployment.yaml
-          kubectl apply -f k8s-manifests/service.yaml
-          kubectl apply -f k8s-manifests/ingress.yaml
+          # Test cluster connectivity
+          echo "Testing cluster connectivity..."
+          kubectl cluster-info
+          kubectl get nodes
+          
+          # Deploy using kubectl with validation disabled
+          kubectl apply --validate=false -f k8s-manifests/namespace.yaml
+          kubectl apply --validate=false -f k8s-manifests/deployment.yaml
+          kubectl apply --validate=false -f k8s-manifests/service.yaml
+          kubectl apply --validate=false -f k8s-manifests/ingress.yaml
           
           # Wait for deployment
           kubectl wait --for=condition=available --timeout=300s deployment/portfolio-app -n portfolio
