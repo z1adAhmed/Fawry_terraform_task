@@ -230,12 +230,24 @@ jobs:
           echo "${{ needs.terraform.outputs.ssh_private_key }}" > ~/.ssh/k3s-key
           chmod 600 ~/.ssh/k3s-key
           
+          # Debug: Check if variables are available
+          echo "Control plane IP: ${{ needs.terraform.outputs.control_plane_ip }}"
+          
           # Set up SSH config for K3s control plane
-          echo "Host k3s-control" > ~/.ssh/config
-          echo "  HostName ${{ needs.terraform.outputs.control_plane_ip }}" >> ~/.ssh/config
-          echo "  User ubuntu" >> ~/.ssh/config
-          echo "  IdentityFile ~/.ssh/k3s-key" >> ~/.ssh/config
-          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+          cat > ~/.ssh/config << 'EOF'
+          Host k3s-control
+            HostName $CONTROL_PLANE_IP
+            User ubuntu
+            IdentityFile ~/.ssh/k3s-key
+            StrictHostKeyChecking no
+          EOF
+          
+          # Replace the placeholder with actual IP
+          sed -i "s/\$CONTROL_PLANE_IP/${{ needs.terraform.outputs.control_plane_ip }}/g" ~/.ssh/config
+          
+          # Debug: Show the SSH config
+          echo "SSH config contents:"
+          cat ~/.ssh/config
 
       - name: Copy kubeconfig from K3s
         run: |
