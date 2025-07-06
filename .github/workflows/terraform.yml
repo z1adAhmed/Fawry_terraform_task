@@ -107,10 +107,11 @@ jobs:
           echo "Control Plane IP: $CONTROL_PLANE_IP"
           echo "Worker IP: $WORKER_IP"
 
-      - name: Write SSH Private Key
+      - name: Copy Terraform SSH Private Key
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private-key.pem
+          cp $TF_DIR/poc-pre-prod-key.pem private-key.pem
           chmod 600 private-key.pem
+          echo "Using Terraform-generated SSH key"
 
       - name: Generate Ansible Inventory
         run: |
