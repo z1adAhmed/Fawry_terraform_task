@@ -231,13 +231,11 @@ jobs:
           chmod 600 ~/.ssh/k3s-key
           
           # Set up SSH config for K3s control plane
-          cat > ~/.ssh/config << EOF
-          Host k3s-control
-            HostName ${{ needs.terraform.outputs.control_plane_ip }}
-            User ubuntu
-            IdentityFile ~/.ssh/k3s-key
-            StrictHostKeyChecking no
-          EOF
+          echo "Host k3s-control" > ~/.ssh/config
+          echo "  HostName ${{ needs.terraform.outputs.control_plane_ip }}" >> ~/.ssh/config
+          echo "  User ubuntu" >> ~/.ssh/config
+          echo "  IdentityFile ~/.ssh/k3s-key" >> ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
 
       - name: Copy kubeconfig from K3s
         run: |
