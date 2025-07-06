@@ -110,7 +110,9 @@ jobs:
       - name: Copy Terraform SSH Private Key
         run: |
           cp modules/compute/poc-pre-prod-key.pem private-key.pem
+          cp modules/compute/poc-pre-prod-key.pem ansible/poc-pre-prod-key.pem
           chmod 600 private-key.pem
+          chmod 600 ansible/poc-pre-prod-key.pem
           echo "Using Terraform-generated SSH key"
 
       - name: Generate Ansible Inventory
@@ -155,4 +157,4 @@ jobs:
 
       - name: Run Ansible Playbook
         run: |
-          ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --private-key ./private-key.pem
+          ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --private-key ansible/poc-pre-prod-key.pem
