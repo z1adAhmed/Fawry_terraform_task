@@ -115,6 +115,7 @@ jobs:
     name: Ansible Configuration
     runs-on: ubuntu-latest
     needs: terraform
+    if: needs.terraform.result == 'success'
 
     defaults:
       run:
@@ -130,6 +131,23 @@ jobs:
 
       - name: Generate Ansible Inventory
         run: |
+          echo "Debug: Checking Terraform job outputs..."
+          echo "control_plane_ip: '${{ needs.terraform.outputs.control_plane_ip }}'"
+          echo "worker_ip: '${{ needs.terraform.outputs.worker_ip }}'"
+          echo "control_plane_private_ip: '${{ needs.terraform.outputs.control_plane_private_ip }}'"
+          echo "worker_private_ip: '${{ needs.terraform.outputs.worker_private_ip }}'"
+          
+          # Check if outputs are empty
+          if [ -z "${{ needs.terraform.outputs.control_plane_ip }}" ]; then
+            echo "ERROR: control_plane_ip is empty from Terraform job"
+            exit 1
+          fi
+          
+          if [ -z "${{ needs.terraform.outputs.worker_ip }}" ]; then
+            echo "ERROR: worker_ip is empty from Terraform job"
+            exit 1
+          fi
+          
           cd ansible
           echo "[controlplane]" > inventory.ini
           echo "ubuntu@${{ needs.terraform.outputs.control_plane_ip }} ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory.ini
