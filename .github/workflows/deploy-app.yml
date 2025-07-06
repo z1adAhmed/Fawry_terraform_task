@@ -18,7 +18,7 @@ jobs:
     env:
       AWS_REGION: eu-west-1
       ECR_REPO: 600865703207.dkr.ecr.eu-west-1.amazonaws.com/pre-prod-webapp
-      IMAGE_TAG: latest
+      IMAGE_TAG: ${{ github.sha }}
 
     steps:
       - name: Checkout repository
@@ -78,6 +78,9 @@ jobs:
 
       - name: Deploy to K3s cluster
         run: |
+          # Update deployment with correct image tag
+          sed -i "s|:latest|:${{ env.IMAGE_TAG }}|g" k8s-manifests/deployment.yaml
+          
           # Deploy using kubectl directly
           kubectl apply -f k8s-manifests/namespace.yaml
           kubectl apply -f k8s-manifests/deployment.yaml
