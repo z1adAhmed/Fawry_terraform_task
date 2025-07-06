@@ -78,10 +78,25 @@ jobs:
 
       - name: Get Terraform Outputs
         run: |
+          echo "Starting Terraform outputs extraction..."
+          echo "Current directory: $(pwd)"
+          echo "TF_DIR: $TF_DIR"
+          
           terraform -chdir=$TF_DIR output -json > terraform_outputs.json
           
           echo "Terraform outputs JSON:"
           cat terraform_outputs.json
+          
+          # Check if the file exists and has content
+          if [ ! -f terraform_outputs.json ]; then
+            echo "ERROR: terraform_outputs.json file was not created"
+            exit 1
+          fi
+          
+          if [ ! -s terraform_outputs.json ]; then
+            echo "ERROR: terraform_outputs.json file is empty"
+            exit 1
+          fi
           
           # Extract IP addresses from JSON output
           CONTROL_PLANE_IP=$(jq -r '.ec2_public_ips.value[0]' terraform_outputs.json)
@@ -106,10 +121,13 @@ jobs:
             exit 1
           fi
           
+          echo "Setting job outputs..."
           echo "control_plane_ip=$CONTROL_PLANE_IP" >> $GITHUB_OUTPUT
           echo "worker_ip=$WORKER_IP" >> $GITHUB_OUTPUT
           echo "control_plane_private_ip=$CONTROL_PLANE_PRIVATE_IP" >> $GITHUB_OUTPUT
           echo "worker_private_ip=$WORKER_PRIVATE_IP" >> $GITHUB_OUTPUT
+          
+          echo "Job outputs set successfully"
 
   ansible:
     name: Ansible Configuration
