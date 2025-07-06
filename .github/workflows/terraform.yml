@@ -80,11 +80,11 @@ jobs:
         run: |
           terraform -chdir=$TF_DIR output -json > terraform_outputs.json
           
-          # Extract IP addresses and set as environment variables
-          CONTROL_PLANE_IP=$(terraform -chdir=$TF_DIR output -raw ec2_public_ips | jq -r '.[0]')
-          WORKER_IP=$(terraform -chdir=$TF_DIR output -raw ec2_public_ips | jq -r '.[1]')
-          CONTROL_PLANE_PRIVATE_IP=$(terraform -chdir=$TF_DIR output -raw ec2_private_ips | jq -r '.[0]')
-          WORKER_PRIVATE_IP=$(terraform -chdir=$TF_DIR output -raw ec2_private_ips | jq -r '.[1]')
+          # Extract IP addresses from JSON output
+          CONTROL_PLANE_IP=$(jq -r '.ec2_public_ips.value[0]' terraform_outputs.json)
+          WORKER_IP=$(jq -r '.ec2_public_ips.value[1]' terraform_outputs.json)
+          CONTROL_PLANE_PRIVATE_IP=$(jq -r '.ec2_private_ips.value[0]' terraform_outputs.json)
+          WORKER_PRIVATE_IP=$(jq -r '.ec2_private_ips.value[1]' terraform_outputs.json)
           
           echo "control_plane_ip=$CONTROL_PLANE_IP" >> $GITHUB_OUTPUT
           echo "worker_ip=$WORKER_IP" >> $GITHUB_OUTPUT
