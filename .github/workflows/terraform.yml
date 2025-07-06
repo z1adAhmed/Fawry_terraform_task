@@ -80,19 +80,36 @@ jobs:
         run: |
           terraform -chdir=$TF_DIR output -json > terraform_outputs.json
           
+          echo "Terraform outputs JSON:"
+          cat terraform_outputs.json
+          
           # Extract IP addresses from JSON output
           CONTROL_PLANE_IP=$(jq -r '.ec2_public_ips.value[0]' terraform_outputs.json)
           WORKER_IP=$(jq -r '.ec2_public_ips.value[1]' terraform_outputs.json)
           CONTROL_PLANE_PRIVATE_IP=$(jq -r '.ec2_private_ips.value[0]' terraform_outputs.json)
           WORKER_PRIVATE_IP=$(jq -r '.ec2_private_ips.value[1]' terraform_outputs.json)
           
+          echo "Extracted IPs:"
+          echo "Control Plane IP: '$CONTROL_PLANE_IP'"
+          echo "Worker IP: '$WORKER_IP'"
+          echo "Control Plane Private IP: '$CONTROL_PLANE_PRIVATE_IP'"
+          echo "Worker Private IP: '$WORKER_PRIVATE_IP'"
+          
+          # Check if IPs are empty
+          if [ -z "$CONTROL_PLANE_IP" ] || [ "$CONTROL_PLANE_IP" = "null" ]; then
+            echo "ERROR: Control Plane IP is empty or null"
+            exit 1
+          fi
+          
+          if [ -z "$WORKER_IP" ] || [ "$WORKER_IP" = "null" ]; then
+            echo "ERROR: Worker IP is empty or null"
+            exit 1
+          fi
+          
           echo "control_plane_ip=$CONTROL_PLANE_IP" >> $GITHUB_OUTPUT
           echo "worker_ip=$WORKER_IP" >> $GITHUB_OUTPUT
           echo "control_plane_private_ip=$CONTROL_PLANE_PRIVATE_IP" >> $GITHUB_OUTPUT
           echo "worker_private_ip=$WORKER_PRIVATE_IP" >> $GITHUB_OUTPUT
-          
-          echo "Control Plane IP: $CONTROL_PLANE_IP"
-          echo "Worker IP: $WORKER_IP"
 
   ansible:
     name: Ansible Configuration
@@ -164,17 +181,32 @@ jobs:
 
       - name: Wait for SSH to be available
         run: |
+          echo "Received IP addresses from Terraform job:"
+          echo "Control Plane IP: '${{ needs.terraform.outputs.control_plane_ip }}'"
+          echo "Worker IP: '${{ needs.terraform.outputs.worker_ip }}'"
+          
+          # Check if IPs are empty
+          if [ -z "${{ needs.terraform.outputs.control_plane_ip }}" ]; then
+            echo "ERROR: Control Plane IP is empty"
+            exit 1
+          fi
+          
+          if [ -z "${{ needs.terraform.outputs.worker_ip }}" ]; then
+            echo "ERROR: Worker IP is empty"
+            exit 1
+          fi
+          
           echo "Waiting for SSH to be available on instances..."
           sleep 60  # Give instances time to boot
           
           # Wait for control plane
-          until ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ubuntu@${{ needs.terraform.outputs.control_plane_ip }} 'echo SSH ready'; do
+          until ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ubuntu@"${{ needs.terraform.outputs.control_plane_ip }}" 'echo SSH ready'; do
             echo "Waiting for control plane SSH..."
             sleep 30
           done
           
           # Wait for worker
-          until ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ubuntu@${{ needs.terraform.outputs.worker_ip }} 'echo SSH ready'; do
+          until ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ubuntu@"${{ needs.terraform.outputs.worker_ip }}" 'echo SSH ready'; do
             echo "Waiting for worker SSH..."
             sleep 30
           done
