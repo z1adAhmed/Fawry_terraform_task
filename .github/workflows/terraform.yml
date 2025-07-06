@@ -109,7 +109,7 @@ jobs:
 
       - name: Copy Terraform SSH Private Key
         run: |
-          cp $TF_DIR/poc-pre-prod-key.pem private-key.pem
+          cp modules/compute/poc-pre-prod-key.pem private-key.pem
           chmod 600 private-key.pem
           echo "Using Terraform-generated SSH key"
 
