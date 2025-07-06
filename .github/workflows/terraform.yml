@@ -122,13 +122,13 @@ jobs:
           echo "cp1 ansible_host=${{ env.CONTROL_PLANE_IP }} ansible_user=ubuntu ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory.ini
           echo "" >> inventory.ini
           echo "[controlplane:vars]" >> inventory.ini
-          echo "control_plane_private_ip=${{ env.CONTROL_PLANE_PRIVATE_IP }}" >> inventory.ini
+          echo "private_ip=${{ env.CONTROL_PLANE_PRIVATE_IP }}" >> inventory.ini
           echo "" >> inventory.ini
           echo "[worker]" >> inventory.ini
           echo "worker1 ansible_host=${{ env.WORKER_IP }} ansible_user=ubuntu ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory.ini
           echo "" >> inventory.ini
           echo "[worker:vars]" >> inventory.ini
-          echo "worker_private_ip=${{ env.WORKER_PRIVATE_IP }}" >> inventory.ini
+          echo "private_ip=${{ env.WORKER_PRIVATE_IP }}" >> inventory.ini
           echo "" >> inventory.ini
           echo "[defaults]" >> inventory.ini
           echo "ansible_python_interpreter=/usr/bin/python3" >> inventory.ini
