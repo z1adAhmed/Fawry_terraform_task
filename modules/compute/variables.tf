@@ -1,10 +1,11 @@
 variable "instance_count" {
-  description = "Number of EC2 instances"
+  description = "Number of EC2 instances to launch."
   type        = number
+  default     = 1
 }
 
 variable "env" {
-  description = "Environment name"
+  description = "Environment name (e.g., pre-prod, prod) for resource naming."
   type        = string
 }
 

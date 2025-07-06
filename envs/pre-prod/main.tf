@@ -23,7 +23,18 @@ module "network" {
 module "compute" {
   source        = "../../modules/compute"
   env           = "pre-prod"
-  instance_count = 1
+  instance_count = 2
   vpc_id        = module.network.vpc_id
   subnet_ids    = module.network.subnet_ids
+}
+
+module "ecr" {
+  source            = "../../modules/ecr"
+  repository_name   = "pre-prod-webapp"
+  image_tag_mutability = "IMMUTABLE"
+  scan_on_push      = true
+  tags = {
+    Environment = "pre-prod"
+    Project     = "webapp"
+  }
 }

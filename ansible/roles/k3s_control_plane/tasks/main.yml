@@ -1,0 +1,37 @@
+---
+- name: Install K3s server (control plane)
+  shell: |
+    curl -sfL https://get.k3s.io | sh -
+  args:
+    creates: /usr/local/bin/k3s
+
+- name: Wait for K3s server to be ready
+  shell: "kubectl get node"
+  register: k3s_server_status
+  retries: 30
+  delay: 10
+  until: k3s_server_status.rc == 0
+
+- name: Configure kubectl access
+  shell: |
+    mkdir -p ~/.kube
+    sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+    sudo chown ubuntu:ubuntu ~/.kube/config
+    chmod 600 ~/.kube/config
+  args:
+    creates: ~/.kube/config
+
+- name: Read K3s node-token
+  slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  register: k3s_token
+
+- name: Set fact for node-token
+  set_fact:
+    k3s_node_token: "{{ k3s_token['content'] | b64decode | trim }}"
+
+- name: Save node-token for worker
+  copy:
+    content: "{{ k3s_node_token }}"
+    dest: /tmp/node-token
+    mode: '0644' 

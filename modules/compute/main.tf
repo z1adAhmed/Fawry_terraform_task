@@ -1,4 +1,18 @@
+resource "tls_private_key" "this" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
 
+resource "aws_key_pair" "this" {
+  key_name   = "poc-${var.env}-key"
+  public_key = tls_private_key.this.public_key_openssh
+}
+
+resource "local_file" "private_key_pem" {
+  content  = tls_private_key.this.private_key_pem
+  filename = "${path.module}/poc-${var.env}-key.pem"
+  file_permission = "0600"
+}
 
 resource "aws_security_group" "this" {
   name        = "poc-${var.env}-sg"
@@ -10,6 +24,14 @@ resource "aws_security_group" "this" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow Kubernetes API traffic between instances
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    self        = true
   }
 
   egress {
@@ -43,11 +65,14 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "this" {
   count         = var.instance_count
   ami = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = "t3.small"
   subnet_id     = element(var.subnet_ids, count.index)
   vpc_security_group_ids = [aws_security_group.this.id]
+  key_name      = aws_key_pair.this.key_name
+  associate_public_ip_address = true
 
   tags = {
     Name = "poc-${var.env}-instance${count.index + 1}"
+    Role = count.index == 0 ? "controlplane" : "worker"
   }
 }
