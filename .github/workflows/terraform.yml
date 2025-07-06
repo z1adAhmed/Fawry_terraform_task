@@ -233,17 +233,15 @@ jobs:
           # Debug: Check if variables are available
           echo "Control plane IP: ${{ needs.terraform.outputs.control_plane_ip }}"
           
-          # Set up SSH config for K3s control plane
-          cat > ~/.ssh/config << 'EOF'
+          # Set up SSH config for K3s control plane using environment variable
+          CONTROL_PLANE_IP="${{ needs.terraform.outputs.control_plane_ip }}"
+          cat > ~/.ssh/config << EOF
           Host k3s-control
             HostName $CONTROL_PLANE_IP
             User ubuntu
             IdentityFile ~/.ssh/k3s-key
             StrictHostKeyChecking no
           EOF
-          
-          # Replace the placeholder with actual IP
-          sed -i "s/\$CONTROL_PLANE_IP/${{ needs.terraform.outputs.control_plane_ip }}/g" ~/.ssh/config
           
           # Debug: Show the SSH config
           echo "SSH config contents:"
