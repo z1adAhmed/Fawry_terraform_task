@@ -121,17 +121,25 @@ jobs:
             exit 1
           fi
           
-          echo "Job outputs will be set in next step"
-          echo "Verifying job outputs:"
-          echo "control_plane_ip: $CONTROL_PLANE_IP"
-          echo "worker_ip: $WORKER_IP"
+          echo "Setting environment variables for next step..."
+          echo "CONTROL_PLANE_IP=$CONTROL_PLANE_IP" >> $GITHUB_ENV
+          echo "WORKER_IP=$WORKER_IP" >> $GITHUB_ENV
+          echo "CONTROL_PLANE_PRIVATE_IP=$CONTROL_PLANE_PRIVATE_IP" >> $GITHUB_ENV
+          echo "WORKER_PRIVATE_IP=$WORKER_PRIVATE_IP" >> $GITHUB_ENV
+          
+          echo "Verifying environment variables:"
+          echo "CONTROL_PLANE_IP: $CONTROL_PLANE_IP"
+          echo "WORKER_IP: $WORKER_IP"
 
       - name: Set Job Outputs
         run: |
+          echo "Setting job outputs from environment variables..."
           echo "control_plane_ip=$CONTROL_PLANE_IP" >> $GITHUB_OUTPUT
           echo "worker_ip=$WORKER_IP" >> $GITHUB_OUTPUT
           echo "control_plane_private_ip=$CONTROL_PLANE_PRIVATE_IP" >> $GITHUB_OUTPUT
           echo "worker_private_ip=$WORKER_PRIVATE_IP" >> $GITHUB_OUTPUT
+          
+          echo "Job outputs set successfully"
 
   ansible:
     name: Ansible Configuration
