@@ -144,13 +144,23 @@ jobs:
 
       - name: Setup SSH Key
         run: |
+          echo "Setting up SSH directory..."
           mkdir -p ~/.ssh
+          ls -la ~/.ssh
+          
+          echo "Setting up SSH private key..."
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          ls -la ~/.ssh/id_rsa
           
-          # Add host keys to known_hosts
-          ssh-keyscan -H "${{ needs.terraform.outputs.control_plane_ip }}" >> ~/.ssh/known_hosts
-          ssh-keyscan -H "${{ needs.terraform.outputs.worker_ip }}" >> ~/.ssh/known_hosts
+          echo "Control Plane IP: ${{ needs.terraform.outputs.control_plane_ip }}"
+          echo "Worker IP: ${{ needs.terraform.outputs.worker_ip }}"
+          
+          echo "Adding host keys to known_hosts..."
+          ssh-keyscan -H "${{ needs.terraform.outputs.control_plane_ip }}" >> ~/.ssh/known_hosts || echo "Failed to scan control plane"
+          ssh-keyscan -H "${{ needs.terraform.outputs.worker_ip }}" >> ~/.ssh/known_hosts || echo "Failed to scan worker"
+          
+          echo "SSH setup completed"
 
       - name: Wait for SSH to be available
         run: |
