@@ -320,3 +320,4 @@ jobs:
           echo "🏷️ Image Tag: ${{ env.IMAGE_TAG }}"
 # Pipeline trigger comment
 # Pipeline re-trigger comment
+# Re-run pipeline after opening port 6443
