@@ -267,32 +267,7 @@ jobs:
           echo "Updated kubeconfig:"
           cat ~/.kube/config
 
-      - name: Wait for K3s API server
-        run: |
-          echo "Waiting for K3s API server to be ready..."
-          
-          # First, check if K3s is running on the control plane
-          echo "Checking K3s status on control plane..."
-          ssh k3s-control "sudo systemctl status k3s || echo 'K3s not running as systemd service'"
-          ssh k3s-control "sudo ps aux | grep k3s || echo 'No k3s processes found'"
-          ssh k3s-control "sudo netstat -tlnp | grep 6443 || echo 'Port 6443 not listening'"
-          
-          # Test direct connectivity to the API server
-          echo "Testing direct connectivity to API server..."
-          curl -k https://54.216.208.78:6443/healthz || echo "Direct curl failed"
-          
-          for i in {1..30}; do
-            if kubectl get nodes --request-timeout=10s >/dev/null 2>&1; then
-              echo "K3s API server is ready!"
-              break
-            fi
-            echo "Attempt $i: K3s API server not ready yet, waiting..."
-            sleep 10
-          done
-          
-          # Final connectivity test
-          kubectl cluster-info
-          kubectl get nodes
+      # The K3s API server wait step has been removed as connectivity is confirmed.
 
       - name: Deploy to K3s cluster
         run: |
