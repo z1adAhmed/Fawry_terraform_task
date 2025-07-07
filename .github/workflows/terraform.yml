@@ -236,24 +236,10 @@ jobs:
 
       - name: Setup SSH access to K3s
         run: |
-          # Create SSH directory
           mkdir -p ~/.ssh
-          
-          # Copy SSH key from Terraform outputs
           echo "${{ needs.terraform.outputs.ssh_private_key }}" > ~/.ssh/k3s-key
           chmod 600 ~/.ssh/k3s-key
-          
-          # Debug: Check if variables are available
-          echo "Control plane IP: ${{ needs.terraform.outputs.control_plane_ip }}"
-          echo "All terraform outputs:"
-          echo "control_plane_ip: ${{ needs.terraform.outputs.control_plane_ip }}"
-          echo "worker_ip: ${{ needs.terraform.outputs.worker_ip }}"
-          echo "ssh_private_key available: ${{ needs.terraform.outputs.ssh_private_key != '' }}"
-          
-          # For now, use the known IP address (you can update this after the first run)
-          CONTROL_PLANE_IP="54.216.208.78"
-          
-          # Set up SSH config for K3s control plane
+          CONTROL_PLANE_IP="${{ needs.terraform.outputs.control_plane_ip }}"
           cat > ~/.ssh/config << EOF
           Host k3s-control
             HostName $CONTROL_PLANE_IP
@@ -261,28 +247,23 @@ jobs:
             IdentityFile ~/.ssh/k3s-key
             StrictHostKeyChecking no
           EOF
-          
-          # Debug: Show the SSH config
           echo "SSH config contents:"
+          cat ~/.ssh/config
+
+      - name: Debug SSH Info
+        run: |
+          echo "Control plane IP: ${{ needs.terraform.outputs.control_plane_ip }}"
+          ls -l ~/.ssh/
           cat ~/.ssh/config
 
       - name: Copy kubeconfig from K3s
         run: |
-          # Create .kube directory
           mkdir -p ~/.kube
-          
-          # Copy kubeconfig from K3s control plane (requires sudo)
           ssh k3s-control "sudo cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config
-          
-          # Debug: Show original kubeconfig
           echo "Original kubeconfig:"
           cat ~/.kube/config
-          
-          # Replace localhost with actual IP and fix server URL
-          sed -i "s/127.0.0.1/54.216.208.78/g" ~/.kube/config
-          sed -i "s/localhost/54.216.208.78/g" ~/.kube/config
-          
-          # Debug: Show updated kubeconfig
+          sed -i "s/127.0.0.1/${{ needs.terraform.outputs.control_plane_ip }}/g" ~/.kube/config
+          sed -i "s/localhost/${{ needs.terraform.outputs.control_plane_ip }}/g" ~/.kube/config
           echo "Updated kubeconfig:"
           cat ~/.kube/config
 
