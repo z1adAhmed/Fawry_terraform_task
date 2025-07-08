@@ -290,7 +290,8 @@ jobs:
           kubectl apply --validate=false -f k8s-manifests/ingress.yaml
           
           # Wait for deployment
-          kubectl wait --for=condition=available --timeout=300s deployment/portfolio-app -n portfolio
+          sleep 30
+          kubectl wait --for=condition=available --timeout=600s deployment/portfolio-app -n portfolio
           
           # Show status
           kubectl get pods -n portfolio

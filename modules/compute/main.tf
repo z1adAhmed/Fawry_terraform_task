@@ -48,6 +48,15 @@ resource "aws_security_group" "this" {
     description = "Allow public access to Kubernetes API"
   }
 
+  # Allow public access to NodePort 30080 (portfolio app)
+  ingress {
+    from_port   = 30080
+    to_port     = 30080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow public access to portfolio app NodePort"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
