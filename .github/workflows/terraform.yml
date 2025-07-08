@@ -267,7 +267,16 @@ jobs:
           echo "Updated kubeconfig:"
           cat ~/.kube/config
 
-      # The K3s API server wait step has been removed as connectivity is confirmed.
+      - name: Wait for kubectl to connect to K3s
+        run: |
+          for i in {1..30}; do
+            if kubectl get nodes --request-timeout=10s >/dev/null 2>&1; then
+              echo "K3s API server is ready for kubectl!"
+              break
+            fi
+            echo "Attempt $i: kubectl not ready yet, waiting..."
+            sleep 10
+          done
 
       - name: Deploy to K3s cluster
         run: |
@@ -296,3 +305,4 @@ jobs:
 # Pipeline trigger comment
 # Pipeline re-trigger comment
 # Re-run pipeline after opening port 6443
+# Trigger pipeline after force_delete fix
