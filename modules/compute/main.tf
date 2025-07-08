@@ -6,6 +6,11 @@ resource "tls_private_key" "this" {
 resource "aws_key_pair" "this" {
   key_name   = "poc-${var.env}-key"
   public_key = tls_private_key.this.public_key_openssh
+
+  lifecycle {
+    ignore_changes = [public_key]
+    create_before_destroy = true
+  }
 }
 
 resource "local_file" "private_key_pem" {
@@ -32,6 +37,15 @@ resource "aws_security_group" "this" {
     to_port     = 6443
     protocol    = "tcp"
     self        = true
+  }
+
+  # Allow public access to Kubernetes API (for testing)
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow public access to Kubernetes API"
   }
 
   egress {
